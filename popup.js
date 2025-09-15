@@ -1,14 +1,12 @@
-document.getElementById("fillBtn").addEventListener("click", async () => {
-    try {
-      // Load user details
-      const res = await fetch(chrome.runtime.getURL("userData.json"));
-      const data = await res.json();
-  
-      // Send to active tab
-      let [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-      chrome.tabs.sendMessage(tab.id, { action: "fillForm", data });
-    } catch (err) {
-      console.error("Error loading user data:", err);
-    }
-  });
-  
+console.log("popup.js loaded ");
+
+document.addEventListener("DOMContentLoaded", () => {
+  const btn = document.getElementById("scanFillBtn");
+  if (btn) {
+    btn.addEventListener("click", () => {
+      console.log("Scan & Fill button clicked ✅");
+    });
+  } else {
+    console.error("❌ Button not found");
+  }
+});
