@@ -1,0 +1,59 @@
+{
+  "default": [
+    { "id": "firstname", "value": "Soromtochukwu" },
+    { "id": "lastname", "value": "Osueke" },
+    { "id": "email", "value": "pesova13@gmail.com" },
+    { "id": "phone", "value": "+234-812-623-3410" },
+    { "id": "address", "value": "No. 56 Amokohia, Owerri, Imo, Nigeria" },
+    {
+      "id": "CA_3154",
+      "value": "https://linkedin.com/in/soromtochukwu-osueke or https://pesovatech.xyz"
+    },
+    {
+      "id": "cover_letter",
+      "value": "As a passionate full-stack developer with over 5 years of experience..."
+    }
+  ],
+  "linkedin": [
+    { "id": "firstName", "value": "Soromtochukwu" },
+    { "id": "lastName", "value": "Osueke" },
+    { "id": "email", "value": "pesova13@gmail.com" }
+  ],
+  "indeed": [
+    { "id": "first_name", "value": "Soromtochukwu" },
+    { "id": "last_name", "value": "Osueke" },
+    { "id": "email_address", "value": "pesova13@gmail.com" }
+  ],
+  "snake_case": [
+    {
+      "id": "first_name",
+      "label": "First",
+      "type": "text"
+    },
+    {
+      "id": "last_name",
+      "label": "Last",
+      "type": "text"
+    },
+    {
+      "id": "email",
+      "label": "yourmail@domain.com",
+      "type": "email"
+    },
+    {
+      "id": "phone",
+      "label": "+49 176 123 4455",
+      "type": "text"
+    },
+    {
+      "id": "custom_attribute_570317",
+      "label": "",
+      "type": "text"
+    },
+    {
+      "id": "available_from",
+      "label": "",
+      "type": "text"
+    }
+  ]
+}
