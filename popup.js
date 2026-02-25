@@ -1,6 +1,6 @@
 document.addEventListener("DOMContentLoaded", async () => {
   try {
-    const result = await chrome.storage.local.get(["useMock", "mockType"]);
+    const result = await chrome.storage.local.get(["useMock", "mockType", "filledFieldsCount"]);
     const mockToggle = document.getElementById("mockToggle");
     const mockType = document.getElementById("mockType");
 
@@ -12,14 +12,14 @@ document.addEventListener("DOMContentLoaded", async () => {
       : "none";
 
     // Show/hide refresh button until fields are filled
-    document.getElementById("refreshBtn").style.display = "none";
+    document.getElementById("refreshBtn").style.display = result.filledFieldsCount > 0 ? "flex" : "none";
   } catch (error) {
     console.error("Error loading settings:", error);
   }
 });
 
 document.getElementById("mockToggle").addEventListener("change", async (e) => {
-  const isMock = e.target.checked;
+  const isMock = e.target.checked;  
   document.getElementById("mockSelector").style.display = isMock
     ? "block"
     : "none";
@@ -81,7 +81,6 @@ document.getElementById("scanFillBtn").addEventListener("click", async () => {
         files: ["content.js"],
       });
     } catch (err) {
-      // Script might already be injected
       console.error("Script injection error:", err);
     }
 
@@ -93,10 +92,11 @@ document.getElementById("scanFillBtn").addEventListener("click", async () => {
     });
 
     statusEl.textContent = `Filled ${response.filled} fields`;
+    await chrome.storage.local.set({ filledFieldsCount: response.filled });
 
     setTimeout(() => {
       statusEl.textContent = "";
-      document.getElementById("refreshBtn").style.display = "block"
+      document.getElementById("refreshBtn").style.display = "flex"
     }, 2000);
   } catch (error) {
     console.error("Error:", error);

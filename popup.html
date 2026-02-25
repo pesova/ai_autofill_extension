@@ -3,52 +3,64 @@
   <head>
     <title>Job Autofill</title>
     <style>
-      html,
+      * {
+        box-sizing: border-box;
+      }
+
+      html{
+        display: block;
+      }
       body {
         margin: 0;
-        padding: 0;
-        width: 100%;
+        width: 225px; /* Fixed width for extension popup */
         background-color: rgb(32, 32, 32);
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        outline: 1px rgb(209, 0, 49) solid;
+        display: block;
+      }
+
+      .container {
+        display: flex;
+        flex-direction: column;
+        padding: 12px;
+        gap: 12px;
+        width: 100%;
+        max-width: 100%;
+        overflow-x: hidden;
       }
       .glass-container {
-        display: inline-block;
-        outline: 1px blue solid;
-        padding: 0;
+        display: flex;
+        justify-content: center;
+        outline: 1px rgb(8, 8, 195) solid;
+        padding: 10px;
         box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1); /* subtle depth */
-        width: 200px; /* no extra padding */
-        background: rgba(255, 255, 255, 0.1); /* semi-transparent */
+        background: #2a2a2a; /* semi-transparent */
         backdrop-filter: blur(10px); /* glass blur effect */
         -webkit-backdrop-filter: blur(10px); /* Safari support */
         border-radius: 12px;
-        /* optional rounded edges */
-      }
-      button {
-        width: 100%;
-        padding: 8px;
       }
       .button {
         --black-700: hsla(0 0% 12% / 1);
         --border_radius: 9999px;
         --transition: 0.3s ease-in-out;
         --offset: 2px;
-
         cursor: pointer;
         position: relative;
-
         display: flex;
         align-items: center;
         gap: 0.5rem;
-
         transform-origin: center;
-
-        padding: 1rem 2rem;
+        padding: 0.75rem 1rem;
         background-color: transparent;
-
         border: none;
         border-radius: var(--border_radius);
         transform: scale(calc(1 + (var(--active, 0) * 0.1)));
-
         transition: transform var(--transition);
+        width: 100%;
+        max-width: 220px;
+        margin: 0 auto;
+        justify-content: center;
       }
 
       .button::before {
@@ -63,11 +75,6 @@
         background-color: var(--black-700);
 
         border-radius: var(--border_radius);
-        box-shadow:
-          inset 0 0.5px hsl(0, 0%, 100%),
-          inset 0 -1px 2px 0 hsl(0, 0%, 0%),
-          0px 4px 10px -4px hsla(0 0% 0% / calc(1 - var(--active, 0))),
-          0 0 0 calc(var(--active, 0) * 0.375rem) hsl(260 97% 50% / 0.75);
 
         transition: all var(--transition);
         z-index: 0;
@@ -223,15 +230,20 @@
         align-items: center;
         justify-content: space-between;
         padding: 8px 12px;
-        background: #f3f4f6;
+        background: #2a2a2a;
         border-radius: 8px;
+        border: 1px solid #3a3a3a;
       }
+
       .toggle-label {
         display: flex;
         align-items: center;
         gap: 8px;
+        color: #bdbdbd;
+        font-size: 14px;
         cursor: pointer;
       }
+
       .toggle-switch {
         position: relative;
         display: inline-block;
@@ -250,7 +262,7 @@
         left: 0;
         right: 0;
         bottom: 0;
-        background-color: #ccc;
+        background-color: #4a4a4a;
         transition: 0.3s;
         border-radius: 24px;
       }
@@ -261,7 +273,7 @@
         width: 20px;
         left: 2px;
         bottom: 2px;
-        background-color: white;
+        background-color: #bdbdbd;
         transition: 0.3s;
         border-radius: 50%;
       }
@@ -272,17 +284,31 @@
         transform: translateX(24px);
       }
       .mock-selector {
-        margin-top: 8px;
-        padding: 8px 12px;
-        background: #f3f4f6;
+        padding: 10px;
+        background: #2a2a2a;
         border-radius: 8px;
+        border: 1px solid #3a3a3a;
       }
+      .mock-selector label {
+        display: block;
+        color: #bdbdbd;
+        font-size: 14px;
+        margin-bottom: 6px;
+      }
+
       select {
         width: 100%;
-        padding: 6px;
-        border-radius: 4px;
-        border: 1px solid #ddd;
-        margin-top: 4px;
+        padding: 8px;
+        border-radius: 6px;
+        border: 1px solid #4a4a4a;
+        background: #1a1a1a;
+        color: #bdbdbd;
+        font-size: 14px;
+        cursor: pointer;
+      }
+
+      select option {
+        background: #1a1a1a;
       }
       .status {
         text-align: center;
@@ -290,20 +316,25 @@
         font-weight: 500;
         color: #bdbdbd;
         margin-top: 8px;
-        padding: 20px 0 20px 0;
       }
 
       /*  Refresh button*/
-      .button.secondary {
-        background: linear-gradient(90deg, #6b7280, #4b5563);
-      }
-      .button-icon {
-        display: inline-flex;
+      .refresh-button {
+        display: flex;
         align-items: center;
         gap: 8px;
-        justify-content: center;
+        background: #2a2a2a;
+        justify-content: flex-start;
         padding: 8px 16px;
+        color: #e0e0e0;
         cursor: pointer;
+        border-radius: 8px;
+        border: 1px solid #555555;
+        width: fit-content;
+        transition: background 0.2s;
+      }
+      .refresh-button:hover {
+        background: #4d4d4d;
       }
       .refresh-icon {
         width: 16px;
@@ -344,7 +375,7 @@
         </select>
       </div>
 
-      <span class="button-icon" id="refreshBtn">
+      <div class="refresh-button" id="refreshBtn">
         <svg
           class="refresh-icon"
           id="refreshIcon"
@@ -365,7 +396,7 @@
           />
         </svg>
         Refresh
-      </span>
+      </div>
 
       <div class="glass-container">
         <button class="button" id="scanFillBtn">

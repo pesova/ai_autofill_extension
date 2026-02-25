@@ -1,17 +1,14 @@
 (function () {
-  console.log("content.js loaded - Form Autofill Extension");
-
   // Store original values and filled fields
   let filledFields = new Map();
   let CONFIG = {
-    USE_MOCK: true,
+    USE_MOCK: false,
     MOCK_TYPE: "default",
     OPENAI_API_KEY: "",
   };
 
   // Check if already initialized
   if (window.__formAutofillInitialized) {
-    console.log("Content script already initialized, skipping...");
     return;
   }
   window.__formAutofillInitialized = true;
@@ -34,8 +31,6 @@
         if (result.useMock !== undefined) CONFIG.USE_MOCK = result.useMock;
         if (result.mockType) CONFIG.MOCK_TYPE = result.mockType;
       }
-
-      console.log("Config loaded:", CONFIG);
     } catch (error) {
       console.error("Error loading config:", error);
     }
@@ -55,7 +50,6 @@
     try {
       const response = await fetch(chrome.runtime.getURL("mocks.json"));
       window.MOCK_MAPPINGS = await response.json();
-      console.log("Mocks loaded:", window.MOCK_MAPPINGS);
     } catch (error) {
       console.error("Error loading mocks:", error);
     }
@@ -111,7 +105,6 @@
         const mockType = CONFIG.MOCK_TYPE || "default";
         let mockMapping =
           window.MOCK_MAPPINGS[mockType] || window.MOCK_MAPPINGS.default;
-        console.log(`Using MOCK mapping (${mockType}):`, mockMapping);
         return mockMapping;
       }
 
@@ -156,14 +149,12 @@ Return ONLY a JSON array like:
   }
 
   // Apply mapping to form fields
-  function applyMapping(mapping) {
+  function applyMapping(mapping, fields) {
     let filledCount = 0;
 
     mapping.forEach((m) => {
-      // Try different selectors
-
       const el =
-        document.querySelector(`#${m.id}`) ||
+        document.querySelector(`[id="${m.id}"]`) ||
         document.querySelector(`[name='${m.id}']`) ||
         document.querySelector(`[name='${m.id.toLowerCase()}']`) ||
         document.querySelector(`[placeholder='${m.id}']`) ||
@@ -173,8 +164,6 @@ Return ONLY a JSON array like:
       if (el) {
         // Store original value before filling
         storeOriginalValue(el);
-
-        console.log(`Filling field ${m.id} with value:`, m.value);
 
         // Fill value depending on field type
         if (el.tagName.toLowerCase() === "select") {
@@ -204,53 +193,61 @@ Return ONLY a JSON array like:
     return filledCount;
   }
 
-function refreshFields() {
-  let refreshedCount = 0;
-  
-  filledFields.forEach((data, el) => {
-    try {
-      // Check if element still exists in DOM
-      if (document.body.contains(el)) {
-        console.log(`Refreshing field to original value:`, data.originalValue);
-        
-        if (el.tagName.toLowerCase() === 'select') {
-          const originalOption = Array.from(el.options).find(opt => opt.value === data.originalValue);
-          if (originalOption) el.value = data.originalValue;
-        } else if (el.type === 'checkbox' || el.type === 'radio') {
-          el.checked = data.originalChecked;
-        } else {
-          el.value = data.originalValue;
+  function refreshFields() {
+    let refreshedCount = 0;
+
+    const remainingFields = new Map();
+
+    filledFields.forEach((data, el) => {
+      try {
+        if (document.body.contains(el)) {
+          console.log(
+            `Refreshing field to original value:`,
+            data.originalValue,
+          );
+
+          if (el.tagName.toLowerCase() === "select") {
+            const originalOption = Array.from(el.options).find(
+              (opt) => opt.value === data.originalValue,
+            );
+            if (originalOption) el.value = data.originalValue;
+          } else if (el.type === "checkbox" || el.type === "radio") {
+            el.checked = data.originalChecked;
+          } else {
+            el.value = data.originalValue;
+          }
+
+          el.dispatchEvent(new Event("input", { bubbles: true }));
+          el.dispatchEvent(new Event("change", { bubbles: true }));
+          el.dispatchEvent(new Event("blur", { bubbles: true }));
+
+          refreshedCount++;
         }
-        
-        el.dispatchEvent(new Event("input", { bubbles: true }));
-        el.dispatchEvent(new Event("change", { bubbles: true }));
-        el.dispatchEvent(new Event("blur", { bubbles: true }));
-        
-        refreshedCount++;
-      } else {
-        // Element no longer exists, remove from map
-        filledFields.delete(el);
+      } catch (error) {
+        console.error(`Error refreshing field:`, error);
+        remainingFields.set(el, data);
       }
-    } catch (error) {
-      console.error(`Error refreshing field:`, error);
-    }
-  });  
-  return refreshedCount;
-}
+    });
+    filledFields = remainingFields;
+    chrome.storage.local
+      .set({ filledFieldsCount: filledFields.size })
+      .catch(() => {});
+
+    return refreshedCount;
+  }
 
   // Listen for messages from popup ONLY
   chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     console.log("Content script received message:", msg);
 
     if (msg.action === "scanForm") {
-      // Handle scan form
       (async () => {
         try {
           const fields = getFormFields();
           console.log("Found fields:", fields);
 
           const mapping = await analyzeForm(fields);
-          const filledCount = applyMapping(mapping);
+          const filledCount = applyMapping(mapping, fields);
 
           sendResponse({
             status: "ok",
@@ -295,7 +292,6 @@ function refreshFields() {
       if (msg.config.MOCK_TYPE !== undefined) {
         CONFIG.MOCK_TYPE = msg.config.MOCK_TYPE;
       }
-      console.log("Config updated:", CONFIG);
       sendResponse({ success: true });
       return true;
     }
